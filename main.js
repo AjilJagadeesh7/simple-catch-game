@@ -2,32 +2,44 @@ var game = document.querySelector(".game");
 var fruits = document.querySelector(".fruits");
 
 var basket = document.querySelector(".basket");
-var basketLeft = parseInt(
-  window.getComputedStyle(basket).getPropertyValue("left")
-);
 var basketBottom = parseInt(
   window.getComputedStyle(basket).getPropertyValue("bottom")
 );
 var score = 0;
-function moveBasketLeft() {
-  if (basketLeft > 0) {
-    basketLeft -= 15;
-    basket.style.left = basketLeft + "px";
-  }
-}
-function moveBasketRight() {
-  if (basketLeft < 620) {
-    basketLeft += 15;
-    basket.style.left = basketLeft + "px";
-  }
-}
+var basketPos;
 
-function control(e) {
-  if (e.key == "ArrowLeft") {
-    moveBasketLeft();
+dragElement(basket);
+function dragElement(elmnt) {
+  var pos1 = 0,
+    pos3 = 0;
+  if (document.getElementById(elmnt.id + "header")) {
+    document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+  } else {
+    elmnt.onmousedown = dragMouseDown;
   }
-  if (e.key == "ArrowRight") {
-    moveBasketRight();
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    pos3 = e.clientX;
+    document.onmouseup = closeDragElement;
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    pos1 = pos3 - e.clientX;
+    pos3 = e.clientX;
+    if (elmnt.offsetLeft - pos1 > 0 && elmnt.offsetLeft - pos1 < 620) {
+      basketPos = elmnt.offsetLeft - pos1;
+      elmnt.style.left = elmnt.offsetLeft - pos1 + "px";
+    }
+  }
+
+  function closeDragElement() {
+    document.onmouseup = null;
+    document.onmousemove = null;
   }
 }
 
@@ -41,8 +53,8 @@ function generateFruits() {
     if (
       fruitBottom < basketBottom + 50 &&
       fruitBottom > basketBottom &&
-      fruitLeft > basketLeft - 30 &&
-      fruitLeft < basketLeft + 80
+      fruitLeft > basketPos - 30 &&
+      fruitLeft < basketPos + 80
     ) {
       fruits.removeChild(fruit);
       clearInterval(fallInterval);
@@ -62,4 +74,3 @@ function generateFruits() {
   var fruitsTimeout = setTimeout(generateFruits, 2000);
 }
 generateFruits();
-document.addEventListener("keydown", control);
